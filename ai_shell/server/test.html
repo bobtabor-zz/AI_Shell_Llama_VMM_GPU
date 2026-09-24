@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ai_shell Plugin UI</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #05060a;
+            --panel: #11131b;
+            --panel-soft: #181b26;
+            --accent: #4f8cff;
+            --accent-soft: #4f8cff22;
+            --border: #262a3a;
+            --text: #f5f7ff;
+            --text-soft: #a3a7c2;
+            --error: #ff4f6b;
+            --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--sans);
+            background: radial-gradient(circle at top, #15192b 0, #05060a 55%);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .app {
+            width: min(1100px, 100vw);
+            height: min(720px, 100vh);
+            margin: 16px;
+            background: linear-gradient(145deg, #0b0d15, #05060a);
+            border-radius: 18px;
+            border: 1px solid #202437;
+            box-shadow: 0 18px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .app-header {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: radial-gradient(circle at top left, #1b2136 0, #05060a 60%);
+        }
+
+        .title {
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-soft);
+        }
+
+        .status {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-soft);
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #ffb347;
+            box-shadow: 0 0 0 4px #ffb34722;
+        }
+
+            .status-dot.ok {
+                background: #4fff9a;
+                box-shadow: 0 0 0 4px #4fff9a22;
+            }
+
+            .status-dot.err {
+                background: var(--error);
+                box-shadow: 0 0 0 4px #ff4f6b22;
+            }
+
+        .app-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: minmax(260px, 320px) 1fr;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            border-right: 1px solid var(--border);
+            background: radial-gradient(circle at top, #15192b 0, #05060a 60%);
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-soft);
+            margin-bottom: 4px;
+        }
+
+        .field {
+            margin-bottom: 10px;
+        }
+
+        select, input[type="text"], textarea {
+            width: 100%;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+            color: var(--text);
+            padding: 7px 9px;
+            font-size: 13px;
+            font-family: var(--sans);
+            outline: none;
+            transition: border 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+        }
+
+            select:focus, input[type="text"]:focus, textarea:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 1px var(--accent-soft);
+                background: #1d2130;
+            }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            max-height: 220px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-soft);
+            margin-top: 3px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        button {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-family: var(--sans);
+            cursor: pointer;
+            background: var(--accent);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.12s ease, transform 0.06s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            box-shadow: 0 10px 25px rgba(79,140,255,0.35);
+        }
+
+            button:hover {
+                background: #6b9dff;
+                transform: translateY(-1px);
+                box-shadow: 0 14px 30px rgba(79,140,255,0.45);
+            }
+
+            button:active {
+                transform: translateY(0);
+                box-shadow: 0 6px 16px rgba(79,140,255,0.35);
+            }
+
+            button.secondary {
+                background: transparent;
+                border-color: var(--border);
+                color: var(--text-soft);
+                box-shadow: none;
+            }
+
+                button.secondary:hover {
+                    border-color: var(--accent);
+                    color: var(--accent);
+                    background: #15192b;
+                }
+
+        .main {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            padding: 12px 12px 10px;
+            gap: 8px;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .pill {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 3px 9px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #0b0d15;
+        }
+
+        .output {
+            flex: 1;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: radial-gradient(circle at top left, #15192b 0, #05060a 55%);
+            padding: 10px;
+            overflow: auto;
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+            .output.empty {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-soft);
+                font-family: var(--sans);
+                font-size: 13px;
+            }
+
+        .badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            padding: 2px 7px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-soft);
+            background: #0b0d15;
+        }
+
+        .error-text {
+            color: var(--error);
+        }
+
+        .json-key {
+            color: #7bc7ff;
+        }
+
+        .json-str {
+            color: #c3ff88;
+        }
+
+        .json-num {
+            color: #ffdd8a;
+        }
+
+        .json-bool {
+            color: #ff9d9d;
+        }
+
+        .json-null {
+            color: #ff9d9d;
+            font-style: italic;
+        }
+
+        @media (max-width: 900px) {
+            .app-body {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="app-header">
+            <div class="title">ai_shell · Plugin Console</div>
+            <div class="status" id="status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Idle</span>
+            </div>
+        </div>
+
+        <div class="app-body">
+            <div class="sidebar">
+                <div class="field">
+                    <div class="section-label">Plugin</div>
+                    <select id="plugin">
+                        <option value="ddg">ddg (DuckDuckGo hybrid)</option>
+                        <option value="websearch">websearch</option>
+                        <option value="summarize_file">summarize_file</option>
+                    </select>
+                    <div class="hint">Select which plugin to invoke via <code>/api/plugin</code>.</div>
+                </div>
+
+                <div class="field">
+                    <div class="section-label">Query / Args</div>
+                    <textarea id="query" placeholder="e.g. houston weather or path/to/file.txt"></textarea>
+                    <div class="hint">
+                        This becomes the <code>"query"</code> (or similar) field in the JSON body.
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="section-label">Raw JSON (optional)</div>
+                    <textarea id="raw-json" placeholder='Leave empty to auto-build JSON like:
+{ "plugin": "ddg", "query": "hello world" }'></textarea>
+                    <div class="hint">
+                        If provided, this JSON is sent as-is. Otherwise, JSON is built from plugin + query.
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button id="send-btn">
+                        <span>Invoke Plugin</span>
+                    </button>
+                    <button class="secondary" id="clear-btn">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="output-header">
+                    <div>
+                        <span class="section-label" style="margin-bottom:0;">Response</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span class="badge" id="endpoint-pill">POST /api/plugin</span>
+                        <span class="badge" id="time-pill">–</span>
+                    </div>
+                </div>
+                <div class="output empty" id="output">
+                    No response yet. Invoke a plugin to see JSON here.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const pluginEl = document.getElementById('plugin');
+            const queryEl = document.getElementById('query');
+            const rawJsonEl = document.getElementById('raw-json');
+            const sendBtn = document.getElementById('send-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const outputEl = document.getElementById('output');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const timePill = document.getElementById('time-pill');
+
+            function setStatus(state, text) {
+                statusDot.classList.remove('ok', 'err');
+                if (state === 'ok') statusDot.classList.add('ok');
+                if (state === 'err') statusDot.classList.add('err');
+                statusText.textContent = text;
+            }
+
+            function prettyJson(str) {
+                try {
+                    const obj = JSON.parse(str);
+                    return JSON.stringify(obj, null, 2);
+                } catch {
+                    return str;
+                }
+            }
+            function syntaxHighlight(json) {
+                return json; // no highlighting, no regex, no errors
+            }
+
+    //         function syntaxHighlight(json) {
+    //             json = json
+    //                 .replace(/&/g, '&amp;')
+    //                 .replace(/</g, '&lt;')
+    //                 .replace(/>/g, '&gt;');
+
+    //             return json.replace(
+    //     /("(\\u[a-zA-Z0-9]{4}|\
+
+    //                 \[^ u] | [^\\"])*"(\s *: ) ?|\b(true | false | null) \b | -?\d + (?: \.\d *) ? (?: [eE][+\-]?\d +)?)/g,
+    //             function (match) {
+    //                 let cls = 'json-num';
+    //                 if (/^"/.test(match)) {
+    //                     if (/:$/.test(match)) {
+    //                         cls = 'json-key';
+    //                     } else {
+    //                         cls = 'json-str';
+    //                     }
+    //                 } else if (/true|false/.test(match)) {
+    //                     cls = 'json-bool';
+    //                 } else if (/null/.test(match)) {
+    //                     cls = 'json-null';
+    //                 }
+    //                 return '<span class="' + cls + '">' + match + '</span>';
+    //             }
+    // );
+    //         }
+
+
+
+            async function invokePlugin() {
+                const plugin = pluginEl.value.trim();
+                const query = queryEl.value.trim();
+                const raw = rawJsonEl.value.trim();
+
+                let body;
+
+                if (raw) {
+                    body = raw;
+                } else {
+                    const payload = {
+                        prompt: query   // <-- for AI, we send prompt instead of plugin/query
+                    };
+                    body = JSON.stringify(payload);
+                }
+
+                outputEl.classList.remove('empty');
+                outputEl.innerHTML = 'Sending request...';
+                setStatus('', 'Sending…');
+                timePill.textContent = '–';
+
+                const start = performance.now();
+
+                try {
+                    // ⭐ THIS IS THE ONLY LINE YOU CHANGE ⭐
+                    const res = await fetch('http://localhost:8080/api/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body
+                    });
+
+                    const elapsed = performance.now() - start;
+                    timePill.textContent = `${elapsed.toFixed(1)} ms`;
+
+                    const text = await res.text();
+
+                    if (!res.ok) {
+                        setStatus('err', `HTTP ${res.status}`);
+                        outputEl.innerHTML =
+                            '<span class="error-text">HTTP ' + res.status + '</span>\n\n' +
+                            syntaxHighlight(prettyJson(text));
+                        return;
+                    }
+
+                    setStatus('ok', 'OK');
+                    const pretty = prettyJson(text);
+                    outputEl.innerHTML = syntaxHighlight(pretty);
+                } catch (err) {
+                    const elapsed = performance.now() - start;
+                    timePill.textContent = `${elapsed.toFixed(1)} ms`;
+                    setStatus('err', 'Connection failed');
+                    outputEl.innerHTML =
+                        '<span class="error-text">Connection error:</span>\n\n' +
+                        String(err);
+                }
+            }
+
+
+            sendBtn.addEventListener('click', invokePlugin);
+            clearBtn.addEventListener('click', () => {
+                queryEl.value = '';
+                rawJsonEl.value = '';
+                outputEl.classList.add('empty');
+                outputEl.textContent = 'No response yet. Invoke a plugin to see JSON here.';
+                setStatus('', 'Idle');
+                timePill.textContent = '–';
+            });
+
+            queryEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    invokePlugin();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

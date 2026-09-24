@@ -1,0 +1,47 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11806.211
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ai_shell", "ai_shell.vcxproj", "{A1B2C3D4-E5F6-47A8-9B10-112233445566}"
+	ProjectSection(ProjectDependencies) = postProject
+		{45868F5E-5426-3048-B47D-96594131523F} = {45868F5E-5426-3048-B47D-96594131523F}
+		{0C54147E-CDEE-3507-8A49-913C4677C601} = {0C54147E-CDEE-3507-8A49-913C4677C601}
+		{A5410D17-1A42-33D7-A716-334EC74BCE50} = {A5410D17-1A42-33D7-A716-334EC74BCE50}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "llama", "..\llama.cpp\build\src\llama.vcxproj", "{45868F5E-5426-3048-B47D-96594131523F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "llama-common-base", "..\llama.cpp\build\common\llama-common-base.vcxproj", "{A5410D17-1A42-33D7-A716-334EC74BCE50}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ggml", "..\llama.cpp\build\ggml\src\ggml.vcxproj", "{0C54147E-CDEE-3507-8A49-913C4677C601}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-E5F6-47A8-9B10-112233445566}.Debug|x64.ActiveCfg = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B10-112233445566}.Debug|x64.Build.0 = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B10-112233445566}.Release|x64.ActiveCfg = Release|x64
+		{A1B2C3D4-E5F6-47A8-9B10-112233445566}.Release|x64.Build.0 = Release|x64
+		{45868F5E-5426-3048-B47D-96594131523F}.Debug|x64.ActiveCfg = Debug|x64
+		{45868F5E-5426-3048-B47D-96594131523F}.Debug|x64.Build.0 = Debug|x64
+		{45868F5E-5426-3048-B47D-96594131523F}.Release|x64.ActiveCfg = Release|x64
+		{45868F5E-5426-3048-B47D-96594131523F}.Release|x64.Build.0 = Release|x64
+		{A5410D17-1A42-33D7-A716-334EC74BCE50}.Debug|x64.ActiveCfg = Debug|x64
+		{A5410D17-1A42-33D7-A716-334EC74BCE50}.Debug|x64.Build.0 = Debug|x64
+		{A5410D17-1A42-33D7-A716-334EC74BCE50}.Release|x64.ActiveCfg = Release|x64
+		{A5410D17-1A42-33D7-A716-334EC74BCE50}.Release|x64.Build.0 = Release|x64
+		{0C54147E-CDEE-3507-8A49-913C4677C601}.Debug|x64.ActiveCfg = Debug|x64
+		{0C54147E-CDEE-3507-8A49-913C4677C601}.Debug|x64.Build.0 = Debug|x64
+		{0C54147E-CDEE-3507-8A49-913C4677C601}.Release|x64.ActiveCfg = Release|x64
+		{0C54147E-CDEE-3507-8A49-913C4677C601}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {511132B9-E13F-4166-A5E4-7CDB962F54F5}
+	EndGlobalSection
+EndGlobal

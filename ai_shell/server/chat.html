@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Shell</title>
+    <style>
+        :root {
+            --bg: #111;
+            --sidebar: #181818;
+            --chat-bg: #1a1a1a;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: #eee;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 260px;
+            background: var(--sidebar);
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-btn {
+            padding: 14px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #newChatBtn {
+            background: #0059ff;
+        }
+
+        #deleteChatBtn {
+            background: #aa0000;
+        }
+
+        #conversations {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .convItem {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #222;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+            .convItem:hover {
+                background: #333;
+            }
+
+            .convItem.active {
+                background: #0059ff;
+            }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .user {
+            background: #0059ff;
+            align-self: flex-end;
+        }
+
+        .ai {
+            background: #2a2a2a;
+            align-self: flex-start;
+        }
+
+        /* ==================== IMPROVED INPUT BAR ==================== */
+        #inputBar {
+            display: flex;
+            padding: 16px 20px;
+            background: #1f1f1f;
+            border-top: 1px solid #333;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        #prompt {
+            flex: 1;
+            padding: 16px 20px;
+            font-size: 17px;
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #444;
+            border-radius: 12px;
+            resize: none;
+            min-height: 54px;
+            max-height: 160px;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+            #prompt:focus {
+                outline: none;
+                border-color: #0066ff;
+                box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.2);
+            }
+
+        #send {
+            padding: 16px 32px;
+            font-size: 17px;
+            font-weight: bold;
+            background: #0059ff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            #send:hover {
+                background: #0066ff;
+                transform: translateY(-1px);
+            }
+
+            #send:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        /* Image Gallery */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .img-card {
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+            .img-card img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+
+        .error {
+            color: #ff8888;
+            padding: 12px;
+            background: #330000;
+            border-radius: 6px;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button id="newChatBtn" class="sidebar-btn">+ New Chat</button>
+        <button id="deleteChatBtn" class="sidebar-btn">Delete Chat</button>
+        <div id="conversations"></div>
+    </div>
+
+    <div id="main">
+        <div id="chat"></div>
+
+        <div id="inputBar">
+            <textarea id="prompt" placeholder="Send a message…" rows="1"></textarea>
+            <button id="send">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let convId = null;
+        let conversations = JSON.parse(localStorage.getItem("conversations") || "{}");
+
+        function saveConversations() {
+            localStorage.setItem("conversations", JSON.stringify(conversations));
+        }
+
+        function createConversation() {
+            convId = "conv_" + Date.now();
+            conversations[convId] = [];
+            saveConversations();
+            renderSidebar();
+            loadConversation(convId);
+        }
+
+        function loadConversation(id) {
+            convId = id;
+            renderSidebar();
+            document.getElementById("chat").innerHTML = "";
+            conversations[id].forEach(msg => addMessage(msg.text, msg.role));
+        }
+
+        function renderSidebar() {
+            const list = document.getElementById("conversations");
+            list.innerHTML = "";
+            Object.keys(conversations).forEach(id => {
+                const div = document.createElement("div");
+                div.className = `convItem ${id === convId ? "active" : ""}`;
+                div.textContent = conversations[id][0]?.text?.slice(0, 50) || "New chat";
+                div.onclick = () => loadConversation(id);
+                list.appendChild(div);
+            });
+        }
+
+        function deleteConversation() {
+            if (!convId || !confirm("Delete this chat?")) return;
+            delete conversations[convId];
+            saveConversations();
+            const keys = Object.keys(conversations);
+            keys.length ? loadConversation(keys[0]) : createConversation();
+        }
+
+        function extractImages(text) {
+            const images = new Set();
+            try {
+                const jsonBlocks = text.match(/\{[\s\S]*?\}/g) || [];
+                jsonBlocks.forEach(block => {
+                    try {
+                        const obj = JSON.parse(block);
+                        const scan = (val) => {
+                            if (typeof val === 'string' && /https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp)/i.test(val)) {
+                                images.add(val);
+                            } else if (Array.isArray(val)) val.forEach(scan);
+                            else if (val && typeof val === 'object') Object.values(val).forEach(scan);
+                        };
+                        scan(obj);
+                    } catch (e) { }
+                });
+            } catch (e) { }
+
+            const urlRegex = /https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|bmp)/gi;
+            let match;
+            while ((match = urlRegex.exec(text)) !== null) images.add(match[0]);
+
+            return Array.from(images);
+        }
+
+        function addMessage(text, role) {
+            const div = document.createElement("div");
+            div.className = `msg ${role}`;
+
+            // FIX 1: Clean raw JSON escape strings (like \" and \\) BEFORE running regex looks
+            let html = text.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+
+            // 1. Process images safely first (ignoring existing tags)
+            const imgRegex = /(?<!=["'])(https?:\/\/[^\s<>"]+\.(?:jpg|jpeg|png|gif|webp))/gi;
+            html = html.replace(imgRegex, url => {
+                return `<img src="${url}" style="max-width:100%; max-height:150px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin:8px 0; display:block;">`;
+            });
+
+            // 2. FIX 2: Updated Regex to catch URLs that contain literal spaces within query values
+            const generalUrlRegex = /(?<!=["'])(https?:\/\/[^\s<>"]+(?:\s[^\s<>"]+)*)/gi;
+
+            html = html.replace(generalUrlRegex, url => {
+                let cleanUrl = url.trim();
+
+                // Remove trailing punctuation marks safely without destroying URL content strings
+                cleanUrl = cleanUrl.replace(/[.,#!$%\^&\*;:{}=\-_`~()]+$/, "");
+
+                // Convert any loose spaces inside the URL query string into safe browser "%20" tokens
+                const encodedUrl = cleanUrl.replace(/ /g, "%20");
+
+                return `<a href="${encodedUrl}" target="_blank" rel="noopener noreferrer" style="color:#4ea1ff; font-weight:500; text-decoration:underline; word-break:break-all;">${cleanUrl}</a>`;
+            });
+
+            // 3. Convert literal server newlines into clean HTML breaks
+            html = html.replace(/\n/g, "<br>");
+            div.innerHTML = html;
+
+            const chat = document.getElementById("chat");
+            if (chat) {
+                chat.appendChild(div);
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+
+
+
+
+
+        function storeMessage(text, role) {
+            conversations[convId].push({ role, text });
+            saveConversations();
+        }
+
+
+
+        async function sendMessage() {
+            const promptEl = document.getElementById("prompt");
+            const text = promptEl.value.trim();
+            if (!text) return;
+
+            addMessage(text, "user");
+            if (!conversations[convId]) conversations[convId] = [];
+            conversations[convId].push({ role: "user", text });
+
+            promptEl.value = "";
+            document.getElementById("send").disabled = true;
+
+            const aiDiv = document.createElement("div");
+            aiDiv.className = "msg ai";
+            document.getElementById("chat").appendChild(aiDiv);
+
+            try {
+                const res = await fetch("http://localhost:8080/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: text })
+                });
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let full = "";
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    full += decoder.decode(value);
+                    aiDiv.innerHTML = full;
+                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                }
+
+                conversations[convId].push({ role: "ai", text: full });
+                saveConversations();
+
+            } catch (err) {
+                aiDiv.textContent = "Connection error";
+            }
+
+            document.getElementById("send").disabled = false;
+            promptEl.focus();
+        }
+
+        // Event Listeners
+        document.getElementById("send").onclick = sendMessage;
+        document.getElementById("prompt").addEventListener("keydown", e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        document.getElementById("newChatBtn").onclick = createConversation;
+        document.getElementById("deleteChatBtn").onclick = deleteConversation;
+
+        // Init
+        if (Object.keys(conversations).length === 0) createConversation();
+        else {
+            convId = Object.keys(conversations)[0];
+            renderSidebar();
+            loadConversation(convId);
+        }
+    </script>
+</body>
+</html>

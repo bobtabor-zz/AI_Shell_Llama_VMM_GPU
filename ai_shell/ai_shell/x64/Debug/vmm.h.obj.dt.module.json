@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ai_shell\\x64\\Debug\\vmm.obj",
+            "outputs": [
+                "ai_shell\\x64\\Debug\\vmm.h.obj.dt.module.json",
+                "ai_shell\\x64\\Debug\\vmm.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

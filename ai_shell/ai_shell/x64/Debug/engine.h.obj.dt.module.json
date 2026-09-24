@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ai_shell\\x64\\Debug\\engine.obj",
+            "outputs": [
+                "ai_shell\\x64\\Debug\\engine.h.obj.dt.module.json",
+                "ai_shell\\x64\\Debug\\engine.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

@@ -1,0 +1,122 @@
+
+PING
+
+STATS
+
+LIST_TENSORS default
+
+MODEL_GENERATE default "<prompt>"
+
+llama-cli-shim.exe --prompt "hello"
+
+OPEN_MODEL default G:\Bob_Files\Projects\AI_Shell-main\Meta-Llama-3-8B-Instruct.Q8_0.gguf
+model_info default
+model_test default hello
+model_generate default "Hello"
+
+http://127.0.0.1:8081/infer
+
+OPEN_MODEL default C:\Projects\AI_Shell-main\Meta-Llama-3-8B-Instruct.Q4_K_S.gguf
+OPEN_MODEL default C:\Projects\AI_Shell-main\Bob-llama-Q4_K_S.gguf
+
+
+chat I want to see pictures of cats.
+OPEN default C:\Projects\AI_Shell-main\Meta-Llama-3-8B-Instruct-Q2_K.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Meta-Llama-3-8B-Instruct-Q4_K_M.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Hermes-2-Pro-Llama-3-8B-Q4_K_M.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Phi-3-mini-4k-instruct-q4.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Bob-llama-3-Q4_K_S.gguf
+
+OPEN default C:\Projects\AI_Shell-main\smollm-1.7b-instruct-q4_k_m.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Llama-3-8B-Web.Q4_K_M.gguf
+
+OPEN default C:\Projects\AI_Shell-main\Qwen_Qwen3-4B-Thinking-2507-Q4_K_M.gguf
+
+file:\\\C:\Users\btabor\source\ai_shell\server\chat.html
+
+file:\\\C:\Users\Bobio\source\ai_shell\server\chat.html
+
+..\llama.cpp\ggml\include
+
+
+
+
+MODEL_TEST default "Hello"
+MODEL_INFER default "Hello"
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug
+llama_cli_remote.exe -m default -p "Houston is" --n-predict 64
+
+
+C:\\projects\\\AI_Shell-main\\Meta-Llama-3-8B-Instruct.Q4_K_S.gguf
+C:\projects\AI_Shell-main
+
+
+
+https://huggingface.co/second-state/Llama-3-8B-Instruct-GGUF/blob/main/Meta-Llama-3-8B-Instruct-f16.gguf
+Meta-Llama-3-8B-Instruct-f16.gguf
+
+llama-quantize Meta-Llama-3-8B-Instruct-f16.gguf Bob-llama-Q4_K_S.gguf Q4_K_S <<< Q6_K
+
+llama-quantize Meta-Llama-3-8B-Instruct-f16.gguf Bob-llama-Q4_0.gguf Q4_0
+
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe --help
+llama_cli_remote - AI_SHELL HTTP client
+
+Usage:
+  llama_cli_remote -m MODEL -p PROMPT [options]
+  llama_cli_remote -m MODEL -i [--chat]
+
+Options:
+  -m, --model NAME        Model name (e.g. default)
+  -p, --prompt TEXT       One-shot prompt text
+  -i, --interactive       REPL mode
+      --chat              Chat mode with history
+      --no-color          Disable ANSI colors
+      --server URL        Backend URL (default http://127.0.0.1:8081/infer)
+  -h, --help              Show this help
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug\llama_cli_remote.exe -m default -p "Houston is" --n-predict 64
+Unknown option: --n-predict
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug\llama_cli_remote.exe -m default -p "Houston is"
+{"output":"[gguf] model 'default' loaded: 291 tensors; prompt=''"}
+C:\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe -i
+Missing -m/--model
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe -m default -i
+AI_SHELL REPL ΓÇö type 'exit' to quit
+> hello
+{"output":"[gguf] model 'default' loaded: 291 tensors; prompt=''"}
+> exit
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug\llama_cli_remote.exe -m default -i --chat
+AI_SHELL Chat ΓÇö type 'exit' to quit
+You: hello
+AI: {"output":"[gguf] model 'default' loaded: 291 tensors; prompt=''"}
+You: ^C
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe
+Missing -m/--model
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe default
+Unknown option: default
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe -m default
+Either -p/--prompt or -i/--interactive required
+
+G:\Bob_Files\Projects\AI_Shell-main\Work\ai_shell\x64\Debug>llama_cli_remote.exe -m default -i --chat
+AI_SHELL Chat ΓÇö type 'exit' to quit
+You: hello
+AI: {"output":"[gguf] model 'default' loaded: 291 tensors; prompt=''"}
+You:
+
+
+
+
+ version 20.19+ or 22.12+. Please upgrade your Node.js version.

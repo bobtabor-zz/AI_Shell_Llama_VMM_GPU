@@ -1,0 +1,60 @@
+star google devmode for browser
+
+taskkill /IM chrome.exe /F
+
+Get-Process chrome -ErrorAction SilentlyContinue
+
+
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\ChromeDebug"
+
+
+
+Test-NetConnection -ComputerName localhost -Port 9222
+
+TcpTestSucceeded : True  <<<< yes?
+
+
+>
+>> Invoke-WebRequest http://localhost:9222/json | Select-Object -Expand Content
+
+Security Warning: Script Execution Risk
+Invoke-WebRequest parses the content of the web page. Script code in the web page might be run when the page is parsed.
+      RECOMMENDED ACTION:
+      Use the -UseBasicParsing switch to avoid script code execution.                                                                                                                                                                                                                                                                                                                                                                                       Do you want to continue?                                                                                                                                                                                                                                                                                                                                                                                                                        [Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): y
+[ {
+   "description": "",
+   "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@43eb30368c6ca3d14d540487954abb2780aeae3a/inspector.html?ws=localhost:9222/devtools/page/778BE2D2C92B8F0021409990A0EF1267",
+   "id": "778BE2D2C92B8F0021409990A0EF1267",
+   "title": "Sign in to Chrome",
+   "type": "page",
+   "url": "chrome://intro/",
+   "webSocketDebuggerUrl": "ws://localhost:9222/devtools/page/778BE2D2C92B8F0021409990A0EF1267"
+} ]
+
+
+
+
+Bob, once you launch Chrome the right way, your entire Chromium search sector will come alive instantly.
+
+If you want, I can also help you:
+
+    auto‑launch Chrome from your C code
+
+    detect when the port is closed and retry
+
+    switch to Edge WebView2 (much easier API)
+
+Just say the word.
+
+"ws://localhost:9222/devtools/page/1356CAA3C6FB14586706DC5D917B7300"
+wscat -c ws://localhost:9222/devtools/page/1356CAA3C6FB14586706DC5D917B7300 <<< fails in power shell
+
+
+test in cmd:
+
+curl -v ^
+More?   -H "Connection: Upgrade" ^
+More?   -H "Upgrade: websocket" ^
+More?   -H "Sec-WebSocket-Version: 13" ^
+More?   -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" ^
+More?   http://localhost:9222/devtools/page/1356CAA3C6FB14586706DC5D917B7300

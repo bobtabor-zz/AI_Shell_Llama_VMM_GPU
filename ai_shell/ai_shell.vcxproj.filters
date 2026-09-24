@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="engine\engine.c">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="loader\gguf_loader.c">
+      <Filter>loader</Filter>
+    </ClCompile>
+    <ClCompile Include="main\ai_shell.c" />
+    <ClCompile Include="plugins\ddg.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\summarize_file.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="core\plugin.c">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\websearch.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="server\http_server.c">
+      <Filter>server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\summarize_file_html.c">
+      <Filter>server</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\cJSON.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="vmm\vmm.c">
+      <Filter>vmm</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\brave.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\chromium.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\browser_dispatcher.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\exa_fetch.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\exa_search.c">
+      <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\memory.c">
+      <Filter>engine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="engine\engine.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="loader\gguf_loader.h">
+      <Filter>loader</Filter>
+    </ClInclude>
+    <ClInclude Include="vmm\vmm.h">
+      <Filter>vmm</Filter>
+    </ClInclude>
+    <ClInclude Include="include\plugin.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="server\http_server.h">
+      <Filter>server</Filter>
+    </ClInclude>
+    <ClInclude Include="plugins\browser_dispatcher.h">
+      <Filter>plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="plugins\exa_fetch.h">
+      <Filter>plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="plugins\exa_search.h">
+      <Filter>plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\memory.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{508daa9d-f809-4f8c-b698-d36d2a945d09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine">
+      <UniqueIdentifier>{6331912c-d96b-41cf-a0c7-1e8ea72534cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="loader">
+      <UniqueIdentifier>{7ed1e672-58f6-4e76-bd3c-ab0354595316}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vmm">
+      <UniqueIdentifier>{0e742040-543f-4ef0-a729-10bc78a67905}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ai_shell">
+      <UniqueIdentifier>{49ffcd0a-198b-4c6c-8f9f-dce682797f4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{3e34232e-e14f-4c4b-8e7f-0bdd5dd882cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="plugins">
+      <UniqueIdentifier>{858d10b9-ca43-4f9e-b9a1-6ae09ee3f264}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{1aea78e3-c4f7-4bd4-87ca-fa4b4d04c89b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="llama">
+      <UniqueIdentifier>{092a5475-7f7b-4df9-84a3-cf749edbbefc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="server">
+      <UniqueIdentifier>{31e32243-e879-4835-b03e-289d3c37379c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

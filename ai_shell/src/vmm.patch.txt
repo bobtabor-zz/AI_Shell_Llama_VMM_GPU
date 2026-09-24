@@ -1,0 +1,63 @@
+diff --git a/llama-model-loader.cpp b/llama-model-loader.cpp
+index XXXXXXX..YYYYYYY 100644
+--- a/llama-model-loader.cpp
++++ b/llama-model-loader.cpp
+@@ -1,6 +1,14 @@
+ #include "llama-model-loader.h"
+ 
+ #include "ggml-alloc.h"
++
++// VMM integration
++extern "C" void * vmm_read(void * dst, uint64_t offset, size_t size);
++
++static bool llama_use_vmm() {
++    const char *env = getenv("LLAMA_VMM");
++    return env && env[0] != '\0';
++}
+ #include "ggml.h"
+ #include "gguf.h"
+ #include "llama-hparams.h"
+@@ -XXX,6 +XXX,7 @@ bool llama_model_loader::load_all_data(
+         llama_buf_map & bufs,
+         llama_mlocks * lmlocks,
+         llama_progress_callback progress_callback,
+         void * progress_callback_user_data) {
++    const bool use_vmm = llama_use_vmm();
+     if (files.empty()) {
+         for (ggml_tensor * t = ggml_get_first_tensor(ctx); t != nullptr; t = ggml_get_next_tensor(ctx, t)) {
+             set_tensor_data(t, set_tensor_data_ud);
+@@ -YYY,7 +YYY,7 @@ bool llama_model_loader::load_all_data(
+         } else {
+             const auto & file = files.at(weight->idx);
+ 
+-            if (ggml_backend_buffer_is_host(cur->buffer)) {
++            if (ggml_backend_buffer_is_host(cur->buffer)) {
+-                file->seek(weight->offs, SEEK_SET);
+-                file->read_raw(cur->data, n_size);
++                if (use_vmm) {
++                    vmm_read(cur->data, (uint64_t) weight->offs, n_size);
++                } else {
++                    file->seek(weight->offs, SEEK_SET);
++                    file->read_raw(cur->data, n_size);
++                }
+                 if (check_tensors) {
+                     validation_result.emplace_back(std::async(std::launch::async, [cur, n_size] {
+                         return std::make_pair(cur, ggml_validate_row_data(cur->type, cur->data, n_size));
+@@ -ZZZ,11 +ZZZ,17 @@ bool llama_model_loader::load_all_data(
+                 } else {
+                     read_buf.resize(n_size);
+-                    file->seek(weight->offs, SEEK_SET);
+-                    file->read_raw(read_buf.data(), n_size);
++                    if (use_vmm) {
++                        vmm_read(read_buf.data(), (uint64_t) weight->offs, n_size);
++                    } else {
++                        file->seek(weight->offs, SEEK_SET);
++                        file->read_raw(read_buf.data(), n_size);
++                    }
+                     ggml_backend_tensor_set(cur, read_buf.data(), 0, n_size);
+                     if (check_tensors && !ggml_validate_row_data(cur->type, read_buf.data(), n_size)) {
+                         throw std::runtime_error(format("tensor '%s' has invalid data", ggml_get_name(cur)));
+                     }
+                 }
+             }
+         }

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A1B2C3D4-E5F6-47A8-9B10-112233445566}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ai_shell</RootNamespace>
+    <ProjectName>ai_shell</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>..\llama.cpp\common;..\llama.cpp\ggml\src;..\llama.cpp\ggml\include;.\main;.\engine;.\loader;.\vmm;..\llama.cpp\ggml;..\llama.cpp\include;..\llama.cpp\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>..\llama.cpp\build\common\Debug;..\llama.cpp\build\ggml\src\Debug;..\llama.cpp\build\src\Debug;.\Dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>llama.lib;ggml.lib;ggml-base.lib;ggml-cpu.lib;llama-common-base.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <PostBuildEvent>
+        <Command>copy /Y "$(ProjectDir)Dll\*.dll" "$(OutDir)"</Command>
+      </PostBuildEvent>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>.\main;.\engine;.\loader;.\vmm;..\llama.cpp\include;..\llama.cpp\ggml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>.\Dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>llama.lib;ggml.lib;ggml-base.lib;ggml-cpu.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <PostBuildEvent>
+        <Command>copy /Y "$(ProjectDir)Dll\*.dll" "$(OutDir)"</Command>
+      </PostBuildEvent>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="core\plugin.c" />
+    <ClCompile Include="engine\memory.c" />
+    <ClCompile Include="loader\gguf_loader.c" />
+    <ClCompile Include="main\ai_shell.c" />
+    <ClCompile Include="engine\engine.c" />
+    <ClCompile Include="plugins\brave.c" />
+    <ClCompile Include="plugins\browser_dispatcher.c" />
+    <ClCompile Include="plugins\chromium.c" />
+    <ClCompile Include="plugins\cJSON.c" />
+    <ClCompile Include="plugins\ddg.c" />
+    <ClCompile Include="plugins\exa_fetch.c" />
+    <ClCompile Include="plugins\exa_search.c" />
+    <ClCompile Include="plugins\summarize_file.c" />
+    <ClCompile Include="plugins\websearch.c" />
+    <ClCompile Include="server\http_server.c" />
+    <ClCompile Include="server\summarize_file_html.c" />
+    <ClCompile Include="vmm\vmm.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="engine\engine.h" />
+    <ClInclude Include="engine\memory.h" />
+    <ClInclude Include="include\plugin.h" />
+    <ClInclude Include="loader\gguf_loader.h" />
+    <ClInclude Include="plugins\browser_dispatcher.h" />
+    <ClInclude Include="plugins\exa_fetch.h" />
+    <ClInclude Include="plugins\exa_search.h" />
+    <ClInclude Include="server\http_server.h" />
+    <ClInclude Include="vmm\vmm.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
