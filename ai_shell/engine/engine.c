@@ -12,6 +12,10 @@
 #include "../vmm/vmm.h"
 #include "memory.h"
 
+#include <dxgi.h>
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+
 char* g_plugin_result = NULL;
 static char g_transcript[60000];
 
@@ -1427,7 +1431,19 @@ void engine_reset(engine_t* e) {
 
 }
 
+size_t detect_gpu_vram_mb(void)
+{
+    IDXGIFactory* factory = NULL;
+    IDXGIAdapter* adapter = NULL;
 
+    CreateDXGIFactory(&IID_IDXGIFactory, (void**)&factory);
+    factory->lpVtbl->EnumAdapters(factory, 0, &adapter);
+
+    DXGI_ADAPTER_DESC desc;
+    adapter->lpVtbl->GetDesc(adapter, &desc);
+
+    return (size_t)(desc.DedicatedVideoMemory / (1024 * 1024));
+}
 
 // ------------------------------------------------------------
 // Open / close
@@ -1446,7 +1462,7 @@ engine_t* engine_open(const char* model_path) {
     char vmm_path[MAX_PATH];
     snprintf(vmm_path, sizeof(vmm_path), "vmm.bin");
     int vmm_initm = 0;
-    
+
     vmm_initm = vmm_init(vmm_path, vmm_build ? 1 : 0);
 
 
@@ -1455,15 +1471,33 @@ engine_t* engine_open(const char* model_path) {
     mparams.use_mmap = false;   // if field exists in your llama.h
 
     // ---------------- GPU OFFLOAD (optional) ----------------
-   if (llama_supports_gpu_offload()) {
-       mparams.n_gpu_layers = 999;          // offload as many layers as possible
-       mparams.split_mode = LLAMA_SPLIT_MODE_LAYER;
-       printf("[engine] GPU offload enabled\n");
-   }
-   else {
-       mparams.n_gpu_layers = 0;
-       printf("[engine] GPU offload not supported\n");
-   }
+
+    size_t vram_mb = detect_gpu_vram_mb();
+    printf("[engine] GPU VRAM = %zu MiB\n", vram_mb);;
+
+
+    if (vram_mb < 4096)
+    {
+        mparams.n_gpu_layers = 0;
+        printf("[engine] GPU too small, using CPU\n");
+        printf("[engine] GPU offload not supported\n");
+    }
+    else 
+    {
+        mparams.n_gpu_layers = 999;
+        mparams.split_mode = LLAMA_SPLIT_MODE_LAYER;
+        printf("[engine] GPU offload enabled\n");
+    }
+
+   //if (llama_supports_gpu_offload()) {
+   //    mparams.n_gpu_layers = 999;          // offload as many layers as possible
+   //    mparams.split_mode = LLAMA_SPLIT_MODE_LAYER;
+   //    printf("[engine] GPU offload enabled\n");
+   //}
+   //else {
+   //    mparams.n_gpu_layers = 0;
+   //    printf("[engine] GPU offload not supported\n");
+   //}
 
    // --------------------------------------------------------
 
