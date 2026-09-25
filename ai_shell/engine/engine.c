@@ -601,6 +601,28 @@ int engine_feed_user(engine_t* e, const char* user_text_raw) {
         memory_set_fact(&g_memory, "user_name", name);
     }
 
+    if (strstr(user_text_raw, "i live in ")) {
+        const char* p = strstr(user_text_raw, "i live in ") + strlen("i live in ");
+        char city[128];
+        sscanf(p, "%127s", city);
+        memory_set_fact(&g_memory, "location", city);
+    }
+
+    if (strstr(user_text_raw, "my favorite language is ")) {
+        const char* p = strstr(user_text_raw, "my favorite language is ") + strlen("my favorite language is ");
+        char lang[128];
+        sscanf(p, "%127s", lang);
+        memory_set_fact(&g_memory, "favorite_language", lang);
+    }
+
+    if (strstr(user_text_raw, "working on ")) {
+        const char* p = strstr(user_text_raw, "working on ") + strlen("working on ");
+        char project[128];
+        sscanf(p, "%127s", project);
+        memory_set_fact(&g_memory, "current_project", project);
+    }
+
+
     llama_token tokens[2048];
     int n_tokens = llama_tokenize(
         vocab,
@@ -1372,9 +1394,32 @@ int engine_chat_html(
     }
 
     // Topic update stub
-    if (strstr(model_reply, "project") || strstr(model_reply, "code")) {
+    /*if (strstr(model_reply, "project") || strstr(model_reply, "code")) {
         memory_update_topic(&g_memory, "current_project", model_reply, 5);
+    }*/
+
+    const char* project =
+        memory_get_fact(&g_memory, "current_project");
+
+    if (project && project[0]) {
+
+        char project_summary[512];
+
+        _snprintf(
+            project_summary,
+            sizeof(project_summary),
+            "%.500s",
+            model_reply
+        );
+
+        memory_update_topic(
+            &g_memory,
+            project,
+            project_summary,
+            5
+        );
     }
+
 
     free(model_reply);
 
@@ -1591,25 +1636,80 @@ engine_t* engine_open(const char* model_path) {
         return NULL;
     }
 
+    //const char* sys_prompt = engine_default_system_prompt();
+    ////printf("[engine] system prompt =\n%s\n", sys_prompt);
+    //
+    //if (engine_feed_system_prompt(e, sys_prompt) != 0) {
+    //    llama_free(e->ctx);
+    //    llama_free_model(e->model);
+    //    free(e);
+    //    return NULL;
+    //}
+
+    //// Initialize hybrid memory system
+    //memory_init(&g_memory);
+
+    ////memory_load(&g_memory, "memory.json");
+    //if (!memory_load(&g_memory, "memory.json")) {
+    //    printf("[memory] memory.json NOT FOUND\n");
+    //}
+    //else {
+    //    printf("[memory] memory.json loaded\n");
+    //}
+
+    //// Export memory block (currently empty) and inject into system prompt
+    //char mem_block[200000];
+    //memory_export_system_prompt(&g_memory, mem_block, sizeof(mem_block));
+
+    //printf("%s\n", mem_block);
+
+    //engine_feed_system(e, mem_block);
+
+    // Initialize hybrid memory system
+    memory_init(&g_memory);
+
+    if (!memory_load(&g_memory, "memory.json")) {
+        printf("[memory] memory.json NOT FOUND\n");
+    }
+    else {
+        printf("[memory] memory.json loaded\n");
+    }
+
+    // Export memory
+    char mem_block[200000];
+    memory_export_system_prompt(&g_memory, mem_block, sizeof(mem_block));
+
     const char* sys_prompt = engine_default_system_prompt();
-    //printf("[engine] system prompt =\n%s\n", sys_prompt);
-    
-    if (engine_feed_system_prompt(e, sys_prompt) != 0) {
+
+    // Build ONE system prompt
+    char combined_prompt[220000];
+
+    snprintf(
+        combined_prompt,
+        sizeof(combined_prompt),
+        "%s\n\n"
+        "=== PERSISTENT USER MEMORY ===\n"
+        "%s\n"
+        "=== END MEMORY ===\n"
+        "The above memory contains facts about the user.\n"
+        "Use those facts when answering.\n"
+        "Do not claim you cannot remember if the facts appear above.\n",
+        sys_prompt,
+        mem_block
+    );
+
+    printf(
+        "\n===== COMBINED SYSTEM PROMPT =====\n%s\n",
+        combined_prompt
+    );
+
+    if (engine_feed_system_prompt(e, combined_prompt) != 0) {
         llama_free(e->ctx);
         llama_free_model(e->model);
         free(e);
         return NULL;
     }
 
-    // Initialize hybrid memory system
-    memory_init(&g_memory);
-
-    memory_load(&g_memory, "memory.json");
-
-    // Export memory block (currently empty) and inject into system prompt
-    char mem_block[200000];
-    memory_export_system_prompt(&g_memory, mem_block, sizeof(mem_block));
-    engine_feed_system(e, mem_block);
 
     vmm_cleanup();
     return e;
@@ -1633,7 +1733,25 @@ void engine_close(engine_t* e) {
         e->model = NULL;
     }
 
-    memory_save(&g_memory, "memory.json");
+   // memory_save(&g_memory, "memory.json");
+    int fact_count = 0;
+
+    for (int i = 0; i < MAX_FACTS; i++) {
+        if (g_memory.facts[i].in_use)
+            fact_count++;
+    }
+
+    printf("[memory] facts=%d\n", fact_count);
+
+    char cwd[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, cwd);
+
+    printf("[memory] cwd = %s\n", cwd);
+
+    bool rc = memory_save(&g_memory, "memory.json");
+
+    printf("[memory] save rc = %d\n", rc);
+
 
     free(e);
 }

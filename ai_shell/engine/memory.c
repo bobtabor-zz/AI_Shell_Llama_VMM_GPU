@@ -65,6 +65,8 @@ bool memory_remove_fact(memory_t *m, const char *key) {
 // Topic Records
 // ===============================
 bool memory_add_topic(memory_t *m, const char *topic, const char *data, int importance) {
+    if (importance < 0 || importance > 10)
+        importance = 5;
     if (!m || !topic || !data) return false;
     for (int i = 0; i < MAX_TOPIC_RECORDS; i++) {
         if (!m->topics[i].in_use) {
@@ -228,7 +230,7 @@ bool memory_load(memory_t* m, const char* path) {
         if (strstr(line, "\"topic\"")) {
             char topic[128];
             char data[MAX_TOPIC_DATA];
-            int importance;
+            int importance = 0;
 
             sscanf(
                 line,
