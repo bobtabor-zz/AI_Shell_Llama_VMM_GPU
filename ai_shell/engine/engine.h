@@ -54,6 +54,19 @@ extern "C" {
 
     struct llama_context_params ctx_params;
 
+    typedef enum {
+        MODEL_LLAMA3,
+        MODEL_LLAMA3_WEB,
+        MODEL_HERMES2_WEB,
+        MODEL_HERMES2_PRO,
+        MODEL_PHI3,
+        MODEL_SMOLLM,
+        MODEL_MISTRAL,
+        MODEL_QWEN,
+        MODEL_GEMMA,
+        MODEL_LLAMA2,
+        MODEL_UNKNOWN
+    } model_family_t;
 
     typedef struct engine {
         struct llama_model* model;
@@ -94,6 +107,10 @@ extern "C" {
         bool    kv_valid;      // is there a meaningful sequence in KV?
         int64_t kv_len;        // how many tokens are currently in KV?
 
+        //model_family_t family;
+        char g_transcript[60000];
+        model_family_t family;
+
     } engine_t;
 
     int engine_recreate_context(engine_t* e);
@@ -131,6 +148,13 @@ extern "C" {
         float top_p,
         bool stream
     );
+
+    typedef struct {
+        engine_t* engines[16];
+        int count;
+        engine_t* active;
+    } engine_manager_t;
+
 
         // -------------------------
         // Llama‑3 / Llama‑3.1 / Llama‑3.2  (ChatML)

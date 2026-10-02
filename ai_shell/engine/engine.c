@@ -130,21 +130,21 @@ void engine_init_runtime(engine_t* e) {
 // ============================================================================
 // MODEL FAMILY ENUM + GLOBAL
 // ============================================================================
-typedef enum {
-    MODEL_LLAMA3,
-    MODEL_LLAMA3_WEB,
-    MODEL_HERMES2_WEB,
-    MODEL_HERMES2_PRO,
-    MODEL_PHI3,
-    MODEL_SMOLLM,
-    MODEL_MISTRAL,
-    MODEL_QWEN,
-    MODEL_GEMMA,
-    MODEL_LLAMA2,
-    MODEL_UNKNOWN
-} model_family_t;
+//typedef enum {
+//    MODEL_LLAMA3,
+//    MODEL_LLAMA3_WEB,
+//    MODEL_HERMES2_WEB,
+//    MODEL_HERMES2_PRO,
+//    MODEL_PHI3,
+//    MODEL_SMOLLM,
+//    MODEL_MISTRAL,
+//    MODEL_QWEN,
+//    MODEL_GEMMA,
+//    MODEL_LLAMA2,
+//    MODEL_UNKNOWN
+//} model_family_t;
 
-model_family_t g_model_family = MODEL_UNKNOWN;
+//model_family_t g_model_family = MODEL_UNKNOWN;
 
 static model_family_t detect_model_family(const char* path, struct llama_model* model) {
     // ---- GGUF metadata detection ----
@@ -163,16 +163,10 @@ static model_family_t detect_model_family(const char* path, struct llama_model* 
             *p = (char)tolower(*p);
         }
 
-       // if (strcmp(a, "llama3") == 0) return MODEL_LLAMA3;
-	   //if (strcmp(a, "llama") == 0) return MODEL_LLAMA3;  /// Llama‑3 is sometimes just "llama" in GGUF
-       // if (strcmp(a, "phi3") == 0) return MODEL_PHI3;
-       // if (strcmp(a, "smollm") == 0) return MODEL_SMOLLM;
-       // if (strcmp(a, "mistral") == 0) return MODEL_MISTRAL;
+      
         if (strcmp(a, "qwen2") == 0 || strcmp(a, "qwen") == 0 || strcmp(a, "qwen3") == 0)
             return MODEL_QWEN;
-       // if (strcmp(a, "gemma") == 0) return MODEL_GEMMA;
-
-        // Optional: add more architectures here
+    
     }
         
       // ---- 2. Filename Fallback (Secondary check) ----
@@ -380,8 +374,9 @@ static void wrap_llama2_user(char* dst, size_t n, const char* usr) {
 // ============================================================================
 // UNIVERSAL DISPATCHER (CALL THESE FROM FEED_SYSTEM / FEED_USER)
 // ============================================================================
-void engine_wrap_system(char* dst, size_t n, const char* sys) {
-    switch (g_model_family) {
+void engine_wrap_system(engine_t* e, char* dst, size_t n, const char* sys) {
+    //switch (g_model_family)
+        switch (e->family) {
     case MODEL_HERMES2_PRO: wrap_hermes2_pro_system(dst, n, sys); break;
     case MODEL_HERMES2_WEB: wrap_hermes2_web_system(dst, n, sys); break;
     case MODEL_LLAMA3_WEB: wrap_llama3_web_system(dst, n, sys); break;
@@ -396,8 +391,9 @@ void engine_wrap_system(char* dst, size_t n, const char* sys) {
     }
 }
 
-void engine_wrap_user(char* dst, size_t n, const char* usr) {
-    switch (g_model_family) {
+void engine_wrap_user(engine_t* e, char* dst, size_t n, const char* usr) {
+    //switch (g_model_family)
+    switch (e->family) {
     case MODEL_HERMES2_PRO: wrap_hermes2_pro_user(dst, n, usr); break;
     case MODEL_HERMES2_WEB: wrap_hermes2_web_user(dst, n, usr); break;
     case MODEL_LLAMA3_WEB: wrap_llama3_web_user(dst, n, usr); break;
@@ -412,8 +408,9 @@ void engine_wrap_user(char* dst, size_t n, const char* usr) {
     }
 }
 
-const char* engine_default_system_prompt(void) {
-    switch (g_model_family) {
+const char* engine_default_system_prompt(engine_t* e) {
+    //switch (g_model_family)
+    switch (e->family) {
     case MODEL_HERMES2_PRO: return HERMES2_PRO_SYSTEM_PROMPT;
     case MODEL_HERMES2_WEB: return HERMES2_WEB_SYSTEM_PROMPT;
     case MODEL_LLAMA3_WEB: return LLAMA3_WEB_SYSTEM_PROMPT;
@@ -458,7 +455,7 @@ int engine_feed_system_prompt(engine_t* e, const char* system_text) {
     const struct llama_vocab* vocab = llama_model_get_vocab(e->model);
 
     char buf[4096];
-    engine_wrap_system(buf, sizeof(buf), system_text);
+    engine_wrap_system(e, buf,sizeof(buf), system_text);
 
     fprintf(stderr, "\n=== SYSTEM WRAPPER OUTPUT in engine_feed_system_prompt===\n%s\n", buf);
 
@@ -526,7 +523,7 @@ int engine_feed_system(engine_t* e, const char* system_text_raw) {
     const struct llama_vocab* vocab = llama_model_get_vocab(e->model);
 
     char buf[4096];
-    engine_wrap_system(buf, sizeof(buf), system_text_raw);
+    engine_wrap_system(e, buf,sizeof(buf), system_text_raw);
 
     llama_token tokens[2048];
     int n_tokens = llama_tokenize(
@@ -577,7 +574,6 @@ int engine_feed_system(engine_t* e, const char* system_text_raw) {
     return 0;
 }
 
-
 // ------------------------------------------------------------
 // Feed user message (templated) incrementally - STABLE NATIVE BATCH
 // ------------------------------------------------------------
@@ -589,7 +585,7 @@ int engine_feed_user(engine_t* e, const char* user_text_raw) {
     const struct llama_vocab* vocab = llama_model_get_vocab(e->model);
 
     char buf[4096];
-    engine_wrap_user(buf, sizeof(buf), user_text_raw);
+    engine_wrap_user(e,buf, sizeof(buf), user_text_raw);
 
 
     // Fact extraction stub — expand later
@@ -699,7 +695,6 @@ int engine_feed_user(engine_t* e, const char* user_text_raw) {
 
         return 0;
     }
-
 
     return 0;
 }
@@ -853,7 +848,7 @@ int engine_generate_reply(
     jd.buf[0] = '\0';
     char repaired[4096];
 
-   /* const char* sys_prompt = engine_default_system_prompt();
+   /* const char* sys_prompt = engine_default_system_prompt(e);
     fprintf(stderr, "\n=== FULL PROMPT SENT TO MODEL ===\n%s\n", sys_prompt);*/  /// test output
 
     while (n_gen < max_tokens && out_len + 8 < out_size) {
@@ -870,7 +865,7 @@ int engine_generate_reply(
        // fprintf(stderr, "[tok %02d] %s\n", n_gen, piece); // test output
 
         // If Qwen, detect <think> start/end
-        if (g_model_family == MODEL_QWEN) {
+        if (e->family == MODEL_QWEN) {
 
             // detect "<think>"
             if (strstr(piece, "<think>")) {
@@ -881,11 +876,6 @@ int engine_generate_reply(
             if (strstr(piece, "</think>")) {
                 qwen_thinking = false;
             }
-
-            /*if (qwen_thinking) {
-                memcpy(out + out_len, piece, n);
-                goto qwen_next_token;
-            }*/
 
             // If still inside <think>, skip ALL JSON detection
             if (qwen_thinking) {
@@ -903,7 +893,7 @@ int engine_generate_reply(
 
 
         if (!qwen_thinking) {
-            if (g_model_family != MODEL_LLAMA3_WEB && g_model_family != MODEL_HERMES2_WEB)
+            if (e->family != MODEL_LLAMA3_WEB && e->family != MODEL_HERMES2_WEB)
             {
                 // 3. JSON STATE MACHINE FEED (Only process if there are characters)
                 if (n > 0) {
@@ -1113,68 +1103,7 @@ int engine_generate_reply(
             }
         }
 
-        if (g_model_family == MODEL_LLAMA3_WEB)
-        {
-            // 1. Accumulate characters into JSON buffer
-            for (int i = 0; i < n; i++) {
-                char c = piece[i];
-                if (jd.len < sizeof(jd.buf) - 1) {
-                    jd.buf[jd.len++] = c;
-                    jd.buf[jd.len] = 0;
-                }
-            }
-
-            // 2. If JSON action is complete → return immediately
-            if (detect_web_action(jd.buf)) {
-                strncpy(out, jd.buf, out_size - 1);
-                out[out_size - 1] = 0;
-
-                // Reset JSON state
-                jd.state = 0;
-                jd.len = 0;
-                jd.buf[0] = 0;
-                json_started = false;
-                json_complete = false;
-                memset(json_block, 0, sizeof(json_block));
-
-                llama_batch_free(batch);
-                return (int)strlen(out);
-            }
-
-            // 3. DO NOT break on EOS/EOT/control tokens until JSON is complete
-            //    WebLlama often emits trailing control tokens AFTER the JSON block.
-            continue;
-        }
-
-
-        if (g_model_family == MODEL_HERMES2_WEB) {
-
-            for (int i = 0; i < n; i++) {
-                char c = piece[i];
-                if (jd.len < sizeof(jd.buf) - 1) {
-                    jd.buf[jd.len++] = c;
-                    jd.buf[jd.len] = 0;
-                }
-            }
-
-            if (detect_json_action(jd.buf)) {
-                strncpy(out, jd.buf, out_size - 1);
-                out[out_size - 1] = 0;
-
-                jd.state = 0;
-                jd.len = 0;
-                jd.buf[0] = 0;
-
-                llama_batch_free(batch);
-                return (int)strlen(out);
-            }
-
-            if (tok == eos_tok || tok == eot_tok || llama_token_is_control(vocab, tok))
-            {
-                break;
-            }
-        }
-
+     
         qwen_next_token:
 
 
@@ -1187,7 +1116,7 @@ int engine_generate_reply(
         // if (llama_token_is_control(vocab, tok)) break;
         // Qwen Thinking models use control tokens for <think>
         // Do NOT break for MODEL_QWEN
-        if (g_model_family != MODEL_QWEN || !qwen_thinking) {
+        if (e->family != MODEL_QWEN || !qwen_thinking) {
             if (llama_token_is_control(vocab, tok)) break;
         }
 
@@ -1211,21 +1140,16 @@ int engine_generate_reply(
         n_gen++;
     }
 
-
     strncat(g_transcript, out, sizeof(g_transcript) - strlen(g_transcript) - 1);
     strncat(g_transcript, "\n", sizeof(g_transcript) - strlen(g_transcript) - 1);
-
 
     llama_batch_free(batch);
     return (int)out_len;
 }
 
-
-
 // ------------------------------------------------------------
 // HTML chat entry point - Complete Separated Plugin & UI Merge Pipeline
 // ------------------------------------------------------------
-
 int engine_chat_html(
     engine_t* e,
     const char* user_input,
@@ -1236,6 +1160,45 @@ int engine_chat_html(
         return -1;
 
     out[0] = '\0';
+
+    if (
+        strstr(user_input, "which model") ||
+        strstr(user_input, "what model") ||
+        strstr(user_input, "who am i talking to")
+        )
+    {
+        const char* name = "Unknown";
+
+        switch (e->family)
+        {
+        case MODEL_LLAMA3: name = "Meta Llama 3"; break;
+        case MODEL_QWEN: name = "Qwen"; break;
+        case MODEL_GEMMA: name = "Gemma"; break;
+        case MODEL_MISTRAL: name = "Mistral"; break;
+        case MODEL_SMOLLM: name = "SmolLM"; break;
+        case MODEL_PHI3: name = "Phi-3"; break;
+        case MODEL_HERMES2_PRO: name = "Hermes 2 Pro"; break;
+        }
+
+        snprintf(out, out_size,
+            "You are talking to %s.",
+            name);
+
+        if (was_chat_console == true) // console flag
+        {
+            // print the generated text to console
+            printf("%s", out);
+            fflush(stdout);
+            was_chat_console = false;
+            return 0;
+        }
+        else
+        {
+            return (int)strlen(out);  //Web return
+        }
+       
+    }
+
 
     char* Plugin_result = NULL;
     char* temp_str = NULL;
@@ -1257,9 +1220,9 @@ int engine_chat_html(
             plugin_executed = true;
         }
     }
-  
+
     else if (strncmp(user_input, "websearch ", 10) == 0) {
-        
+
         extracted_query = user_input + 10;
         temp = _strdup(extracted_query);
         char* token = strtok(temp, " ");
@@ -1279,9 +1242,9 @@ int engine_chat_html(
                 // printf("%s\n", Plugin_result);
                 plugin_executed = true;
             }
-                
-        } 
-               
+
+        }
+
     }
     // 3. Check for "summarize_file " plugin
     else if (strncmp(user_input, "summarize_file ", 15) == 0) {
@@ -1327,14 +1290,14 @@ int engine_chat_html(
             temp_str = NULL;
         }
     }
-   
+
     // ------------------------------------------------------------
     // Feed Clean User Turn (No text mixed into the question)
     // ------------------------------------------------------------
 
     // Feed system prompt once per session / when KV is empty
     if (!e->kv_valid) {
-        const char* sys = engine_default_system_prompt();
+        const char* sys = engine_default_system_prompt(e);
         int sys_rc = engine_feed_system(e, sys);
         if (sys_rc != 0) {
             engine_reset(e);
@@ -1376,6 +1339,41 @@ int engine_chat_html(
         if (plugin_executed && Plugin_result) free(Plugin_result);
         return rc;
     }
+      
+    const char* user_name =
+        memory_get_fact(&g_memory, "user_name");
+
+    if (user_name && user_name[0])
+    {
+        if (strstr(model_reply, "{{"))
+        {
+            printf(
+                "\n[TEMPLATE LEAK]\n%s\n",
+                model_reply
+            );
+        }
+
+        if (strstr(model_reply, "{{user_name}}"))
+        {
+            printf(
+                "\n[TEMPLATE LEAK DETECTED]\n%s\n",
+                model_reply
+            );
+
+            const char* user_name =
+                memory_get_fact(&g_memory, "user_name");
+
+            if (user_name)
+            {
+                snprintf(
+                    model_reply,
+                    out_size,
+                    "%s",
+                    user_name
+                );
+            }
+        }
+    }
 
     // Format output based on whether a plugin was run
     if (plugin_executed && Plugin_result) {
@@ -1393,11 +1391,9 @@ int engine_chat_html(
         out[out_size - 1] = '\0';
     }
 
-    // Topic update stub
-    /*if (strstr(model_reply, "project") || strstr(model_reply, "code")) {
-        memory_update_topic(&g_memory, "current_project", model_reply, 5);
-    }*/
+   
 
+    // Topic update stub
     const char* project =
         memory_get_fact(&g_memory, "current_project");
 
@@ -1415,9 +1411,15 @@ int engine_chat_html(
         memory_update_topic(
             &g_memory,
             project,
-            project_summary,
+            user_input,
             5
         );
+        printf(
+            "[memory topic] %s -> %s\n",
+            project,
+            user_input
+        );
+
     }
 
 
@@ -1435,13 +1437,7 @@ int engine_chat_html(
     {
         return (int)strlen(out);  //Web return
     }
-
-
-
-   // return (int)strlen(out);
 }
- 
-
 
 // ------------------------------------------------------------
 // Reset conversation
@@ -1462,7 +1458,7 @@ void engine_reset(engine_t* e) {
     e->html_n_turns = 0;
     e->n_turns = 0;
 
-    const char* sys_prompt = engine_default_system_prompt();
+    const char* sys_prompt = engine_default_system_prompt(e);
     //engine_feed_system_prompt(e, "You are a helpful assistant.");
    // engine_feed_system_prompt(e, sys_prompt);
     engine_feed_system(e, sys_prompt);
@@ -1534,15 +1530,6 @@ engine_t* engine_open(const char* model_path) {
         printf("[engine] GPU offload enabled\n");
     }
 
-   //if (llama_supports_gpu_offload()) {
-   //    mparams.n_gpu_layers = 999;          // offload as many layers as possible
-   //    mparams.split_mode = LLAMA_SPLIT_MODE_LAYER;
-   //    printf("[engine] GPU offload enabled\n");
-   //}
-   //else {
-   //    mparams.n_gpu_layers = 0;
-   //    printf("[engine] GPU offload not supported\n");
-   //}
 
    // --------------------------------------------------------
 
@@ -1553,8 +1540,20 @@ engine_t* engine_open(const char* model_path) {
     }
 
     // ⭐ Detect model family here
-    g_model_family = detect_model_family(model_path, e->model);
-    printf("[engine] detected model family: %d\n", (int)g_model_family);
+    //g_model_family = detect_model_family(model_path, e->model);
+
+
+    e->family = detect_model_family(
+        model_path,
+        e->model
+    );
+
+    printf(
+        "[engine] detected model family: %d\n",
+        (int)e->family
+    );
+
+    //printf("[engine] detected model family: %d\n", (int)g_model_family);
 
     const struct llama_vocab* vocab = llama_model_get_vocab(e->model);
     
@@ -1566,20 +1565,7 @@ engine_t* engine_open(const char* model_path) {
     // Read the native maximum training context limit embedded directly inside the GGUF file
     int32_t model_train_ctx = llama_model_n_ctx_train(e->model);
 
-    //if (model_train_ctx > 0) {
-    //    // Successfully pulled from GGUF metadata. Assign it directly!
-    //    cparams.n_ctx = model_train_ctx;
-    //    printf("[SUCCESS] GGUF metadata found! Context length auto-populated to: %d tokens.\n", cparams.n_ctx);
-    //}
-    //else {
-    //    // Fallback guard condition in case the metadata key is missing
-    //    cparams.n_ctx = 4096;
-    //    printf("[WARN] GGUF metadata context length unavailable. Falling back to default: 4096 tokens.\n");
-    //}
-
-
-
-    // Thinking models declare massive max context (over 250k)
+     // Thinking models declare massive max context (over 250k)
     // but llama.cpp cannot allocate KV that large in CPU RAM unless you have >48GB free
     if (model_train_ctx > 8192) {
         cparams.n_ctx = 8192;        // SAFE VALUE
@@ -1612,17 +1598,7 @@ engine_t* engine_open(const char* model_path) {
 #ifdef LLAMA_CONTEXT_PARAMS_HAS_N_UBATCH
     cparams.n_ubatch = 2048;
 #endif
-    // ---------------- GPU OFFLOAD (optional) ----------------
-    //if (llama_supports_gpu_offload()) {
-    //    mparams.n_gpu_layers = 999;          // offload as many layers as possible
-    //    mparams.split_mode = LLAMA_SPLIT_MODE_LAYER;
-    //    printf("[engine] GPU offload enabled\n");
-    //}
-    //else {
-    //    mparams.n_gpu_layers = 0;
-    //    printf("[engine] GPU offload not supported\n");
-    //}
-
+  
     // --------------------------------------------------------
 
     // Store tuned params for recreate_context()----------------------------------------------------
@@ -1635,35 +1611,6 @@ engine_t* engine_open(const char* model_path) {
         free(e);
         return NULL;
     }
-
-    //const char* sys_prompt = engine_default_system_prompt();
-    ////printf("[engine] system prompt =\n%s\n", sys_prompt);
-    //
-    //if (engine_feed_system_prompt(e, sys_prompt) != 0) {
-    //    llama_free(e->ctx);
-    //    llama_free_model(e->model);
-    //    free(e);
-    //    return NULL;
-    //}
-
-    //// Initialize hybrid memory system
-    //memory_init(&g_memory);
-
-    ////memory_load(&g_memory, "memory.json");
-    //if (!memory_load(&g_memory, "memory.json")) {
-    //    printf("[memory] memory.json NOT FOUND\n");
-    //}
-    //else {
-    //    printf("[memory] memory.json loaded\n");
-    //}
-
-    //// Export memory block (currently empty) and inject into system prompt
-    //char mem_block[200000];
-    //memory_export_system_prompt(&g_memory, mem_block, sizeof(mem_block));
-
-    //printf("%s\n", mem_block);
-
-    //engine_feed_system(e, mem_block);
 
     // Initialize hybrid memory system
     memory_init(&g_memory);
@@ -1679,7 +1626,7 @@ engine_t* engine_open(const char* model_path) {
     char mem_block[200000];
     memory_export_system_prompt(&g_memory, mem_block, sizeof(mem_block));
 
-    const char* sys_prompt = engine_default_system_prompt();
+    const char* sys_prompt = engine_default_system_prompt(e);
 
     // Build ONE system prompt
     char combined_prompt[220000];
