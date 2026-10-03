@@ -1,4 +1,5 @@
 #include "../engine/engine.h"
+#include "../engine/routerEngine.h"
 #include "llama.h"
 #include <windows.h>
 
@@ -7,6 +8,7 @@
 #include <string.h>
 #include "../include/plugin.h"
 #include "../server/http_server.h"
+
 
 // -----------------------------------------------------------------------------
 // Global engine instance
@@ -58,7 +60,7 @@ int parse_args(char* line, char** argv, int max_args) {
 // Commands
 // -----------------------------------------------------------------------------
 
-void cmd_open(int argc, char** argv) {
+void cmd_open_single_model(int argc, char** argv) {
     if (argc < 2) {
         printf("ERR missing model path\n");
         return;
@@ -73,15 +75,28 @@ void cmd_open(int argc, char** argv) {
 
     g_engine = engine_open(path);
 
-    if (!g_engine) {
+    /*if (!g_engine) {
         printf("ERR failed_to_open_model\n");
         return;
+    }*/
+    if (!router_active_engine()) {
+        printf("ERR no_model_loaded\n");
+        return;
     }
-
     printf("OK model_loaded\n");
 }
 
-void cmd_close(int argc, char** argv) {
+void cmd_open(int argc, char** argv)
+{
+    (void)argc;
+    (void)argv;
+
+    printf(
+        "Use: MODELS or USE <model>\n"
+    );
+}
+
+void cmd_close_single_model(int argc, char** argv) {
     if (g_engine) {
         engine_close(g_engine);
         g_engine = NULL;
@@ -89,6 +104,15 @@ void cmd_close(int argc, char** argv) {
     printf("OK closed\n");
 }
 
+void cmd_close(int argc, char** argv)
+{
+    (void)argc;
+    (void)argv;
+
+    router_shutdown();
+
+    printf("OK router_shutdown\n");
+}
 
 void cmd_infer(int argc, char** argv) {
     if (!g_engine) {
@@ -103,25 +127,7 @@ void cmd_infer(int argc, char** argv) {
 
     const char* prompt = argv[argc - 1];
 
-    char out[8192];
-   /////////////* int n = engine_generate(
-   ////////////     g_engine,
-   ////////////     prompt,
-   ////////////     out,
-   ////////////     sizeof(out),
-   ////////////     128,
-   ////////////     0.8f,
-   ////////////     40,
-   ////////////     0.9f,
-   ////////////     true
-   //////////// );*/
-
-   ///////////////////////* if (n < 0) {
-   //////////////////////     printf("ERR infer_failed\n");
-   //////////////////////     return;
-   ////////////////////// }
-
-   ////////////////////// pri*/ntf("OUT %s\n", out);
+    char out[8192];  
 }
 
 static char chat_history[65536];
@@ -137,7 +143,15 @@ static void cmd_stats(int argc, char ** argv) {
     (void) argv;
 
     printf("OK\n");
-    printf("ENGINE %s\n", g_engine ? "LOADED" : "NONE");
+    //printf("ENGINE %s\n", g_engine ? "LOADED" : "NONE");
+
+    printf(
+        "ENGINE %s\n",
+        router_active_engine()
+        ? router_active_name()
+        : "NONE"
+    );
+
     printf("END\n");
 }
 
@@ -200,29 +214,103 @@ static void dispatch(char* line) {
             return;
     }
 
+    else if (strcmp(cmd, "USE") == 0)
+    {
+        if (argc < 2)
+        {
+            printf("usage: USE <model>\n");
+            return;
+        }
+
+        if (router_switch(argv[1]) == 0)
+        {
+            printf(
+                "OK active model = %s\n",
+                router_active_name()
+            );
+        }
+        else
+        {
+            printf(
+                "ERR model_not_found\n"
+            );
+        }
+
+        return;
+    }
+
+    else if (strcmp(cmd, "MODELS") == 0)
+    {
+        router_list_models();
+        return;
+    }
+
+    else if (strcmp(cmd, "CURRENT") == 0)
+    {
+        printf(
+            "active=%s\n",
+            router_active_name()
+        );
+    }
+
 
     else if (strcmp(cmd, "CHAT") == 0) {
+
         char reply[4096];
 
         was_chat_console = true;
 
-        char user_msg[4096] = { 0 };
-        for (int i = 1; i < argc; i++) {
-            strcat(user_msg, argv[i]);
-            if (i + 1 < argc) strcat(user_msg, " ");
+        if (argc < 2) {
+            printf("ERR missing_prompt\n");
+            return;
         }
 
-        if (!g_engine) {
+        engine_t* selected = NULL;
+        int prompt_start = 1;
+
+        if (argc >= 3) {
+
+            selected = router_get_engine(argv[1]);
+
+            if (selected) {
+                prompt_start = 2;
+
+                printf(
+                    "[router] routed to %s\n",
+                    argv[1]
+                );
+            }
+        }
+
+        if (!selected) {
+            selected = router_active_engine();
+        }
+
+        if (!selected) {
             printf("ERR no_model_loaded\n");
             return;
         }
 
-        if (engine_chat_html(g_engine, user_msg, reply, sizeof(reply)) == 0) {
-            //printf("AI> %s\n", reply);
+        char user_msg[4096] = { 0 };
+
+        for (int i = prompt_start; i < argc; i++) {
+
+            strcat(user_msg, argv[i]);
+
+            if (i + 1 < argc) {
+                strcat(user_msg, " ");
+            }
         }
-        else {
+
+        if (engine_chat_html(
+            selected,
+            user_msg,
+            reply,
+            sizeof(reply)) != 0)
+        {
             printf("ERR chat_failed\n");
         }
+
         printf("\n");
     }
 
@@ -280,6 +368,37 @@ int main(void) {
     printf("[main] Starting...\n");
     llama_backend_init();
 
+   /* router_init();
+
+    router_add_model(
+        "llama3",
+        "D:\\projects\\AI_Shell-main\\Meta-Llama-3-8B-Instruct-Q4_K_M.gguf"
+    );
+
+    router_add_model(
+        "qwen",
+        "D:\\projects\\AI_Shell-main\\qwen2.5-7b-custom-Q4_K_M.gguf"
+    );
+
+    router_switch("llama3");*/
+
+    router_init();
+
+    router_add_model(
+        "llama3",
+        "D:\\projects\\AI_Shell-main\\Meta-Llama-3-8B-Instruct-Q4_K_M.gguf"
+    );
+
+    router_add_model(
+        "qwen",
+        "D:\\projects\\AI_Shell-main\\qwen2.5-7b-custom-Q4_K_M.gguf"
+    );
+
+    router_load_all();
+
+    router_switch("llama3");
+
+
     // ⭐ REGISTER PLUGINS HERE ⭐
     plugin_register("ddg", plugin_ddg);
     plugin_register("summarize_term", plugin_summarize_file);  // need to check
@@ -290,16 +409,6 @@ int main(void) {
 
     // ⭐ START HTTP SERVER IN BACKGROUND THREAD ⭐
     CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)http_server_start, (void*)8080, 0, NULL);
-
-    /*CreateThread(
-        NULL,
-        0,
-        http_server_thread,
-        (LPVOID)(intptr_t)8080,
-        0,
-        NULL
-    );*/
-
 
     printf("[http] server running on http://localhost:8080\n");
 
@@ -313,9 +422,12 @@ int main(void) {
         fflush(stdout);
     }
 
-    if (g_engine) {
+    /*if (g_engine) {
         engine_close(g_engine);
-    }
+    }*/
+    router_shutdown();
+
+    llama_backend_free();
 
     return 0;
 }
