@@ -13,26 +13,114 @@ void router_init(void)
 
 void router_shutdown(void)
 {
-    for (int i = 0; i < g_router.count; i++)
+   for (int i = 0; i < g_router.count; i++)
     {
-        if (g_router.models[i].engine)
+        routed_model_t* m =
+            &g_router.models[i];
+
+        if (m->engine)
         {
             printf(
                 "[router] unloading %s\n",
-                g_router.models[i].name
+                m->name
             );
 
             engine_close(
-                g_router.models[i].engine
+                m->engine
             );
 
-            g_router.models[i].engine = NULL;
+            m->engine = NULL;
         }
+
+        DeleteCriticalSection(
+            &m->lock
+        );
     }
 
     g_router.count = 0;
     g_router.active = NULL;
+
+
 }
+
+routed_model_t* router_find(
+    const char* name
+)
+{
+    for (int i = 0; i < g_router.count; i++)
+    {
+        if (_stricmp(
+            g_router.models[i].name,
+            name) == 0)
+        {
+            return &g_router.models[i];
+        }
+    }
+
+    return NULL;
+}
+
+int router_generate(
+    const char* model_name,
+    const char* prompt,
+    char* response,
+    size_t response_size
+)
+{
+    routed_model_t* m =
+        router_find(model_name);
+
+    if (!m)
+        return -1;
+
+    if (!m->engine)
+    {
+        m->engine =
+            engine_open(m->path);
+
+        if (!m->engine)
+            return -1;
+    }
+
+    EnterCriticalSection(
+        &m->lock
+    );
+
+    m->requests++;
+
+    int rc =
+        engine_generate_reply(
+            m->engine,
+            prompt,
+            response,
+            response_size
+        );
+
+    LeaveCriticalSection(
+        &m->lock
+    );
+
+    return rc;
+}
+
+void router_load_all(void)
+{
+    for (int i = 0; i < g_router.count; i++)
+    {
+        routed_model_t* m =
+            &g_router.models[i];
+
+        if (!m->engine)
+        {
+            m->engine =
+                engine_open(
+                    m->path
+                );
+        }
+    }
+}
+
+
 
 int router_add_model(
     const char* name,
@@ -48,6 +136,10 @@ int router_add_model(
         &g_router.models[g_router.count];
 
     memset(m, 0, sizeof(*m));
+
+    InitializeCriticalSection(
+        &m->lock
+    );
 
     strncpy(
         m->name,

@@ -1,4 +1,10 @@
 #pragma once
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>   // defines CRITICAL_SECTION, InitializeCriticalSection, EnterCriticalSection, ...
+#endif
 
 #include "engine.h"
 
@@ -13,6 +19,11 @@ extern "C" {
         char path[MAX_PATH];
 
         engine_t* engine;
+
+        CRITICAL_SECTION lock;
+
+        long requests;
+
     } routed_model_t;
 
     typedef struct {
@@ -56,3 +67,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
