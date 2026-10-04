@@ -7,13 +7,16 @@
 
 //#include "../include/plugin.h"   // plugin_invoke()
 #include "../engine/engine.h"
-
+#include "../engine/routerEngine.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
 static int running = 1;
 
-extern engine_t* g_engine;
+//extern engine_t* g_engine;
+
+//extern engine_t* selected;
+
 char* json_escape(const char* s);
 
 
@@ -184,12 +187,23 @@ static void handle_client(SOCKET client) {
 
         json_extract_string(quote1, prompt_text, sizeof(prompt_text));
 
+        engine_t* selected =
+            router_active_engine();
 
         // --- RUN THE MODEL ---
         char outbuf[65536];
         outbuf[0] = 0;
 
-        int rc = engine_chat_html(g_engine, prompt_text, outbuf, sizeof(outbuf));
+        if (!selected)
+        {
+            send_http_response(
+                client,
+                "{\"error\":\"no model loaded\"}"
+            );
+            return;
+        }
+
+        int rc = engine_chat_html(selected, prompt_text, outbuf, sizeof(outbuf));
         if (rc < 0) {
             send_http_response(client, "{\"error\":\"engine_chat failed\"}");
             return;
