@@ -272,13 +272,16 @@ static void dispatch(char* line) {
 
             selected = router_get_engine(argv[1]);
 
-            if (selected) {
-                prompt_start = 2;
+            if (selected)
+            {
+                router_switch(argv[1]);
 
                 printf(
-                    "[router] routed to %s\n",
+                    "[router] active model = %s\n",
                     argv[1]
                 );
+
+                prompt_start = 2;
             }
         }
 
@@ -391,7 +394,7 @@ int main(void) {
 
     router_add_model(
         "qwen",
-        "D:\\projects\\AI_Shell-main\\qwen2.5-7b-custom-Q4_K_M.gguf"
+        "D:\\projects\\AI_Shell-main\\qwen2.5-7b-music-Q4_K_M.gguf"
     );
 
     router_load_all();
