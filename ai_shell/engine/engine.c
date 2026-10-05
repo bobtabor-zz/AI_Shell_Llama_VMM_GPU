@@ -414,14 +414,14 @@ const char* engine_default_system_prompt(engine_t* e) {
     case MODEL_HERMES2_PRO: return HERMES2_PRO_SYSTEM_PROMPT;
     case MODEL_HERMES2_WEB: return HERMES2_WEB_SYSTEM_PROMPT;
     case MODEL_LLAMA3_WEB: return LLAMA3_WEB_SYSTEM_PROMPT;
-    case MODEL_LLAMA3: return LLAMA3_SYSTEM_PROMPT;
+    case MODEL_LLAMA3: return default_system_prompt;
     case MODEL_SMOLLM: return SMOLLM_SYSTEM_PROMPT;
     case MODEL_PHI3:   return PHI3_SYSTEM_PROMPT;
     case MODEL_MISTRAL:return MISTRAL_SYSTEM_PROMPT;
-    case MODEL_QWEN:   return QWEN_SYSTEM_PROMPT;
+    case MODEL_QWEN:   return default_system_prompt;
     case MODEL_GEMMA:  return GEMMA_SYSTEM_PROMPT;
     case MODEL_LLAMA2: return LLAMA2_SYSTEM_PROMPT;
-    default:           return LLAMA3_SYSTEM_PROMPT;
+    default:           return default_system_prompt;
     }
 }
 

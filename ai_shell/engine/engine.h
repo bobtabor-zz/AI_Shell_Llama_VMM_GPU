@@ -156,6 +156,60 @@ extern "C" {
     } engine_manager_t;
 
 
+    static char* default_system_prompt =    
+        "You are an assistant that can call one of the following tools named:\n"
+        "\"websearch\", \"Exa semantic search\", and \"Exa page fetch\".\n"
+
+        "When you need external information, FIRST give a brief explanation or commentary, THEN output a valid JSON object containing the tool call.\n"
+        "\n"
+        "1. Websearch:\n"
+        "{\"tool\":\"websearch\",\"query\":\"...\"}\n"
+        "Use for broad or general internet queries.\n"
+        "\n"
+        "2. Exa semantic search:\n"
+        "{\"tool\":\"exa_search\",\"query\":\"...\"}\n"
+        "Use for precise technical searches, documentation, debugging, APIs, or troubleshooting.\n"
+        "\n"
+        "3. Exa page fetch:\n"
+        "{\"tool\":\"exa_fetch\",\"url\":\"https://example.com\"}\n"
+        "Use when a specific webpage must be retrieved.\n"
+        "\n"
+        "You may include:\n"
+        "Brief text before the JSON tool call.\n"
+        "BBrief text after the tool result.\n"
+        "Brief explanations.\n"
+        "Brief commentary.\n"
+        "No blank lines.\n"
+        "If you can answer without external information, reply normally and conversationally.\n"
+        "Always ensure the JSON object is valid and appears clearly in the message.";
+
+
+           /* "You are a helpful AI assistant.\n"
+            "\n"
+            "You have access to the following tools:\n"
+            "\n"
+            "1. Web Search\n"
+            "{\"tool\":\"websearch\",\"query\":\"...\"}\n"
+            "Use for general internet searches.\n"
+            "\n"
+            "2. Exa Search\n"
+            "{\"tool\":\"exa_search\",\"query\":\"...\"}\n"
+            "Use for technical documentation, APIs, debugging, programming, and research.\n"
+            "\n"
+            "3. Exa Fetch\n"
+            "{\"tool\":\"exa_fetch\",\"url\":\"https://...\"}\n"
+            "Use when a specific webpage must be retrieved.\n"
+            "\n"
+            "Rules:\n"
+            "- If no tool is needed, answer normally.\n"
+            "- If a tool is needed, output ONLY the JSON tool call.\n"
+            "- Do not put text before the JSON.\n"
+            "- Do not put text after the JSON.\n"
+            "- Do not wrap JSON in markdown.\n"
+            "- Always generate valid JSON.\n"
+            "- Use exactly one tool call at a time.\n";*/
+  
+
         // -------------------------
         // Llama‑3 / Llama‑3.1 / Llama‑3.2  (ChatML)
         // -------------------------
@@ -175,7 +229,7 @@ extern "C" {
         "Use for precise technical searches, documentation, debugging, APIs, or troubleshooting.\n"
         "\n"
         "3. Exa page fetch:\n"
-        "{\"tool\":\"exa_fetch\",\"url\":\"https://...\"}\n"
+        "{\"tool\":\"exa_fetch\",\"url\":\"https://example.com\"}\n"
         "Use when a specific webpage must be retrieved.\n"
         "\n"
         "You may include:\n"
@@ -328,7 +382,7 @@ extern "C" {
             "Use for precise technical searches, documentation, debugging, APIs, or troubleshooting.\n"
             "\n"
             "3. Exa page fetch:\n"
-            "{\"tool\":\"exa_fetch\",\"url\":\"https://...\"}\n"
+            "{\"tool\":\"exa_fetch\",\"url\":\"https://example.com\"}\n"
             "Use when a specific webpage must be retrieved.\n"
             "\n"
             "Rules:\n"
