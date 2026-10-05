@@ -187,8 +187,49 @@ static void handle_client(SOCKET client) {
 
         json_extract_string(quote1, prompt_text, sizeof(prompt_text));
 
-        engine_t* selected =
-            router_active_engine();
+      /*  engine_t* selected =
+            router_active_engine();*/
+
+        engine_t* selected = NULL;
+
+        /* Try routing from first word */
+
+        char model_name[64];
+        char actual_prompt[4096];
+
+        if (sscanf(
+            prompt_text,
+            "%63s %[^\n]",
+            model_name,
+            actual_prompt) == 2)
+        {
+            selected =
+                router_get_engine(model_name);
+
+            if (selected)
+            {
+                printf(
+                    "[http router] %s\n",
+                    model_name
+                );
+
+                /* Make it the active model */
+                router_switch(model_name);
+
+                strcpy(
+                    prompt_text,
+                    actual_prompt
+                );
+            }
+        }
+
+        /* Fallback to active model */
+
+        if (!selected)
+        {
+            selected =
+                router_active_engine();
+        }
 
         // --- RUN THE MODEL ---
         char outbuf[65536];
